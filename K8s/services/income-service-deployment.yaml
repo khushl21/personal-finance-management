@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: income-service
+  labels:
+    app: income-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: income-service
+  template:
+    metadata:
+      labels:
+        app: income-service
+    spec:
+      containers:
+        - name: maproject-income-service
+          image: dhrumil871/maproject-income-service:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql-expense-db:3306/expense_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "root"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka-server:8761/eureka/"

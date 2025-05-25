@@ -1,0 +1,177 @@
+version: '3.8'
+
+services:
+  mysql-user-db:
+    image: mysql:8.0
+    container_name: mysql-user-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: user_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-user-data:/var/lib/mysql
+    networks:
+      - my-network
+
+  mysql-budget-db:
+    image: mysql:8.0
+    container_name: mysql-budget-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: budget_db
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-budget-data:/var/lib/mysql
+    networks:
+      - my-network
+
+  mysql-expense-db:
+    image: mysql:8.0
+    container_name: mysql-expense-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: expense_db
+    ports:
+      - "3309:3306"
+    volumes:
+      - mysql-expense-data:/var/lib/mysql
+    networks:
+      - my-network
+
+  mysql-transaction-db:
+    image: mysql:8.0
+    container_name: mysql-transaction-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: transaction_db
+    ports:
+      - "3310:3306"
+    volumes:
+      - mysql-transaction-data:/var/lib/mysql
+    networks:
+      - my-network
+
+  eureka-server:
+    build: ./EurekaServer
+    container_name: eureka-server
+    restart: always
+    ports:
+      - "8761:8761"
+    networks:
+      - my-network
+
+  api-gateway:
+    build: ./apigateway
+    container_name: api-gateway
+    restart: always
+    depends_on:
+      - eureka-server
+    ports:
+      - "9090:9090"
+    networks:
+      - my-network
+
+  users-service:
+    build: ./users
+    container_name: users-service
+    restart: always
+    depends_on:
+      - mysql-user-db
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-user-db:3306/user_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "8081:8081"
+    networks:
+      - my-network
+
+  budget-service:
+    build: ./budget
+    container_name: budget-service
+    restart: always
+    depends_on:
+      - mysql-budget-db
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-budget-db:3306/budget_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "8085:8085"
+    networks:
+      - my-network
+
+  transactions-service:
+    build: ./transactions
+    container_name: transactions-service
+    restart: always
+    depends_on:
+      - mysql-transaction-db
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-transaction-db:3306/transaction_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "8084:8084"
+    networks:
+      - my-network
+
+  expenses-service:
+    build: ./expenses
+    container_name: expenses-service
+    restart: always
+    depends_on:
+      - mysql-expense-db
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-expense-db:3306/expense_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "8082:8082"
+    networks:
+      - my-network
+
+  income-service:
+    build: ./income
+    container_name: income-service
+    restart: always
+    depends_on:
+      - mysql-expense-db
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-expense-db:3306/expense_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "8083:8083"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
+
+volumes:
+  mysql-user-data:
+    driver: local
+  mysql-budget-data:
+    driver: local
+  mysql-expense-data:
+    driver: local
+  mysql-transaction-data:
+    driver: local

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-transaction-db
+  labels:
+    app: mysql-transaction-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-transaction-db
+  template:
+    metadata:
+      labels:
+        app: mysql-transaction-db
+    spec:
+      containers:
+        - name: mysql-transaction-db
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "root"
+            - name: MYSQL_DATABASE
+              value: "transaction_db"
+          ports:
+            - containerPort: 3306
